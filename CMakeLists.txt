@@ -80,9 +80,20 @@ add_executable(PSP-UFU
 
 if(WIN32)
 
+  # Select the prebuilt libraries matching the target architecture.
+  # (chartdir and fftw ship separate 32/64-bit binaries; mixing them
+  # produces LNK4272 "machine type conflict" and unresolved symbols.)
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(FFTW_DIR "${CMAKE_SOURCE_DIR}/vendors/fftw/fftw-3.3.5-dll64")
+    set(CHARTDIR_DIR "${CMAKE_SOURCE_DIR}/vendors/chatdir/win64")
+  else()
+    set(FFTW_DIR "${CMAKE_SOURCE_DIR}/vendors/fftw/fftw-3.3.5-dll32")
+    set(CHARTDIR_DIR "${CMAKE_SOURCE_DIR}/vendors/chatdir/win32")
+  endif()
+
   target_link_directories(PSP-UFU PRIVATE
-    "${CMAKE_SOURCE_DIR}/vendors/fftw/fftw-3.3.5-dll32"
-    "${CMAKE_SOURCE_DIR}/vendors/chatdir/win32"
+    "${FFTW_DIR}"
+    "${CHARTDIR_DIR}"
   )
 
   target_link_libraries(PSP-UFU PRIVATE
@@ -152,11 +163,11 @@ if(WIN32)
   add_custom_command(TARGET PSP-UFU POST_BUILD
 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      "${CMAKE_SOURCE_DIR}/vendors/fftw/fftw-3.3.5-dll32/libfftw3-3.dll"
+      "${FFTW_DIR}/libfftw3-3.dll"
       $<TARGET_FILE_DIR:PSP-UFU>
 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-      "${CMAKE_SOURCE_DIR}/vendors/chatdir/win32/chartdir70.dll"
+      "${CHARTDIR_DIR}/chartdir70.dll"
       $<TARGET_FILE_DIR:PSP-UFU>
 
     COMMAND ${CMAKE_COMMAND} -E copy_directory
